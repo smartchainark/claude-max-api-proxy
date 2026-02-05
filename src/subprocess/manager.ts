@@ -38,11 +38,23 @@ export interface SubprocessEvents {
 
 const DEFAULT_TIMEOUT = 300000; // 5 minutes
 
+// Debug logging controlled by environment variable
+const DEBUG = process.env.DEBUG_SUBPROCESS === "true";
+
 export class ClaudeSubprocess extends EventEmitter {
   private process: ChildProcess | null = null;
   private buffer: string = "";
   private timeoutId: NodeJS.Timeout | null = null;
   private isKilled: boolean = false;
+
+  /**
+   * Conditional debug logging
+   */
+  private debug(...args: any[]): void {
+    if (DEBUG) {
+      console.error(...args);
+    }
+  }
 
   /**
    * Start the Claude CLI subprocess with the given prompt
@@ -86,12 +98,12 @@ export class ClaudeSubprocess extends EventEmitter {
         // Close stdin since we pass prompt as argument
         this.process.stdin?.end();
 
-        console.error(`[Subprocess] Process spawned with PID: ${this.process.pid}`);
+        this.debug(`[Subprocess] Process spawned with PID: ${this.process.pid}`);
 
         // Parse JSON stream from stdout
         this.process.stdout?.on("data", (chunk: Buffer) => {
           const data = chunk.toString();
-          console.error(`[Subprocess] Received ${data.length} bytes of stdout`);
+          this.debug(`[Subprocess] Received ${data.length} bytes of stdout`);
           this.buffer += data;
           this.processBuffer();
         });
@@ -102,13 +114,13 @@ export class ClaudeSubprocess extends EventEmitter {
           if (errorText) {
             // Don't emit as error unless it's actually an error
             // Claude CLI may write debug info to stderr
-            console.error("[Subprocess stderr]:", errorText.slice(0, 200));
+            this.debug("[Subprocess stderr]:", errorText.slice(0, 200));
           }
         });
 
         // Handle process close
         this.process.on("close", (code) => {
-          console.error(`[Subprocess] Process closed with code: ${code}`);
+          this.debug(`[Subprocess] Process closed with code: ${code}`);
           this.clearTimeout();
           // Process any remaining buffer
           if (this.buffer.trim()) {
@@ -144,11 +156,11 @@ export class ClaudeSubprocess extends EventEmitter {
 
     // Add system prompt if provided (backstory/memories from OpenClaw)
     if (options.systemPrompt) {
-      console.error(`[Subprocess] System prompt: ${options.systemPrompt.length} chars`);
-      console.error(`[Subprocess] System prompt content:\n${options.systemPrompt}`);
+      this.debug(`[Subprocess] System prompt: ${options.systemPrompt.length} chars`);
+      this.debug(`[Subprocess] System prompt content:\n${options.systemPrompt}`);
       args.push("--append-system-prompt", options.systemPrompt);
     } else {
-      console.error("[Subprocess] NO system prompt provided");
+      this.debug("[Subprocess] NO system prompt provided");
     }
 
     // Add tool restrictions if provided
@@ -185,10 +197,10 @@ export class ClaudeSubprocess extends EventEmitter {
           // Emit content delta for streaming
           this.emit("content_delta", message as ClaudeCliStreamEvent);
         } else if (isAssistantMessage(message)) {
-          console.error(`[Response] Assistant message:`, JSON.stringify(message.message.content));
+          this.debug(`[Response] Assistant message:`, JSON.stringify(message.message.content));
           this.emit("assistant", message);
         } else if (isResultMessage(message)) {
-          console.error(`[Response] Result:`, message.result);
+          this.debug(`[Response] Result:`, message.result);
           this.emit("result", message);
         }
       } catch {
