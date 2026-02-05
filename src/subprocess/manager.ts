@@ -139,11 +139,16 @@ export class ClaudeSubprocess extends EventEmitter {
       "--model",
       options.model, // Model alias (opus/sonnet/haiku)
       "--no-session-persistence", // Don't save sessions
+      "--dangerously-skip-permissions", // Allow file operations (running as service)
     ];
 
     // Add system prompt if provided (backstory/memories from OpenClaw)
     if (options.systemPrompt) {
+      console.error(`[Subprocess] System prompt: ${options.systemPrompt.length} chars`);
+      console.error(`[Subprocess] System prompt content:\n${options.systemPrompt}`);
       args.push("--append-system-prompt", options.systemPrompt);
+    } else {
+      console.error("[Subprocess] NO system prompt provided");
     }
 
     // Add tool restrictions if provided
@@ -180,8 +185,10 @@ export class ClaudeSubprocess extends EventEmitter {
           // Emit content delta for streaming
           this.emit("content_delta", message as ClaudeCliStreamEvent);
         } else if (isAssistantMessage(message)) {
+          console.error(`[Response] Assistant message:`, JSON.stringify(message.message.content));
           this.emit("assistant", message);
         } else if (isResultMessage(message)) {
+          console.error(`[Response] Result:`, message.result);
           this.emit("result", message);
         }
       } catch {
