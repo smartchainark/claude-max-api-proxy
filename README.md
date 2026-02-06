@@ -238,5 +238,6 @@ MIT
 
 ## Acknowledgments
 
+- Listed as an official provider on [OpenClaw docs](https://docs.openclaw.ai/providers/claude-max-api-proxy)
 - Built for use with [Clawdbot](https://clawd.bot)
 - Powered by [Claude Code CLI](https://github.com/anthropics/claude-code)
