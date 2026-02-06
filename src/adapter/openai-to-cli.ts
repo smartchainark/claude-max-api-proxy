@@ -2,7 +2,7 @@
  * Converts OpenAI chat request format to Claude CLI input
  */
 
-import type { OpenAIChatRequest } from "../types/openai.js";
+import type { OpenAIChatRequest, OpenAIMessageContent } from "../types/openai.js";
 
 export type ClaudeModel = "opus" | "sonnet" | "haiku";
 
@@ -47,6 +47,27 @@ export function extractModel(model: string): ClaudeModel {
 }
 
 /**
+ * Extract plain text from message content.
+ *
+ * The OpenAI chat API accepts `content` as either a plain string or an array
+ * of content-part objects (e.g. `[{ type: "text", text: "Hello" }]`).
+ * This helper normalises both forms into a single string so downstream code
+ * can treat content uniformly.
+ */
+function extractText(content: OpenAIMessageContent): string {
+  if (typeof content === "string") {
+    return content;
+  }
+  if (Array.isArray(content)) {
+    return content
+      .filter((part) => part.type === "text" && typeof part.text === "string")
+      .map((part) => part.text as string)
+      .join("\n");
+  }
+  return String(content ?? "");
+}
+
+/**
  * Convert OpenAI messages array to a single prompt string for Claude CLI
  *
  * Claude Code CLI in --print mode expects a single prompt, not a conversation.
@@ -56,20 +77,21 @@ export function messagesToPrompt(messages: OpenAIChatRequest["messages"]): strin
   const parts: string[] = [];
 
   for (const msg of messages) {
+    const text = extractText(msg.content);
     switch (msg.role) {
       case "system":
         // System messages become context instructions
-        parts.push(`<system>\n${msg.content}\n</system>\n`);
+        parts.push(`<system>\n${text}\n</system>\n`);
         break;
 
       case "user":
         // User messages are the main prompt
-        parts.push(msg.content);
+        parts.push(text);
         break;
 
       case "assistant":
         // Previous assistant responses for context
-        parts.push(`<previous_response>\n${msg.content}\n</previous_response>\n`);
+        parts.push(`<previous_response>\n${text}\n</previous_response>\n`);
         break;
     }
   }

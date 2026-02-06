@@ -3,9 +3,25 @@
  * Used for Clawdbot integration
  */
 
+/**
+ * A single part inside a structured content array.
+ * The OpenAI spec allows "text", "image_url", etc.
+ */
+export interface OpenAIContentPart {
+  type: string;
+  text?: string;
+  [key: string]: unknown;
+}
+
+/**
+ * Message content can be a plain string **or** an array of content parts.
+ * @see https://platform.openai.com/docs/api-reference/chat/create#messages-content
+ */
+export type OpenAIMessageContent = string | OpenAIContentPart[];
+
 export interface OpenAIChatMessage {
   role: "system" | "user" | "assistant";
-  content: string;
+  content: OpenAIMessageContent;
 }
 
 export interface OpenAIChatRequest {
