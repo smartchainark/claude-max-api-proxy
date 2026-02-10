@@ -153,6 +153,16 @@ The proxy also accepts prefixed model names for compatibility with different cli
 
 ## Configuration with Popular Tools
 
+### Clawdbot
+
+Clawdbot has **built-in support** for Claude CLI OAuth! Check your config:
+
+```bash
+clawdbot models status
+```
+
+If you see `anthropic:claude-cli=OAuth`, you're already using your Max subscription.
+
 ### OpenClaw
 
 ```json
@@ -304,6 +314,16 @@ This will log:
 - Assistant messages and results
 - Process exit codes
 
+## Cost Savings Example
+
+| Usage | API Cost | With This Provider |
+|-------|----------|-------------------|
+| 1M input tokens/month | ~$15 | $0 (included in Max) |
+| 500K output tokens/month | ~$37.50 | $0 (included in Max) |
+| **Monthly Total** | **~$52.50** | **$0 extra** |
+
+If you're already paying for Claude Max, this provider lets you use that subscription for API-style access at no additional cost.
+
 ## Security
 
 - Uses Node.js `spawn()` instead of shell execution to prevent injection attacks
@@ -322,5 +342,6 @@ MIT
 ## Acknowledgments
 
 - Originally created by [atalovesyou](https://github.com/atalovesyou/claude-max-api-proxy)
+- Built for use with [Clawdbot](https://clawd.bot)
 - Community contributors: [@wende](https://github.com/wende), [@kevinfealey](https://github.com/kevinfealey), [@jamshehan](https://github.com/jamshehan)
 - Powered by [Claude Code CLI](https://github.com/anthropics/claude-code)
