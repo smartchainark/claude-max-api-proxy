@@ -18,24 +18,33 @@ export interface CliInput {
 }
 
 const MODEL_MAP: Record<string, ClaudeModel> = {
-  // Direct model names
+  // Direct model names (id 仅作档位映射，CLI 实际跑该档当前最新版)
   "claude-opus-4": "opus",
   "claude-opus-4-6": "opus",
+  "claude-opus-4-8": "opus",
   "claude-sonnet-4": "sonnet",
   "claude-sonnet-4-5": "sonnet",
+  "claude-sonnet-4-6": "sonnet",
   "claude-haiku-4": "haiku",
+  "claude-haiku-4-5": "haiku",
   // With provider prefix
   "claude-code-cli/claude-opus-4": "opus",
   "claude-code-cli/claude-opus-4-6": "opus",
+  "claude-code-cli/claude-opus-4-8": "opus",
   "claude-code-cli/claude-sonnet-4": "sonnet",
   "claude-code-cli/claude-sonnet-4-5": "sonnet",
+  "claude-code-cli/claude-sonnet-4-6": "sonnet",
   "claude-code-cli/claude-haiku-4": "haiku",
+  "claude-code-cli/claude-haiku-4-5": "haiku",
   // Claude-max prefix (from OpenClaw config)
   "claude-max/claude-opus-4": "opus",
   "claude-max/claude-opus-4-6": "opus",
+  "claude-max/claude-opus-4-8": "opus",
   "claude-max/claude-sonnet-4": "sonnet",
   "claude-max/claude-sonnet-4-5": "sonnet",
+  "claude-max/claude-sonnet-4-6": "sonnet",
   "claude-max/claude-haiku-4": "haiku",
+  "claude-max/claude-haiku-4-5": "haiku",
   // Aliases
   "opus": "opus",
   "opus-max": "opus",
@@ -59,8 +68,8 @@ export function extractModel(model: string): ClaudeModel {
     return MODEL_MAP[stripped];
   }
 
-  // Default to opus (Claude Max subscription)
-  return "opus";
+  // 不认的 id → 默认 sonnet（更省额度，避免静默打到 opus）
+  return "sonnet";
 }
 
 /**
