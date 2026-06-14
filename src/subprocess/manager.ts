@@ -71,7 +71,7 @@ export class ClaudeSubprocess extends EventEmitter {
         const childEnv = { ...process.env };
         delete childEnv.CLAUDECODE;
         delete childEnv.CLAUDE_CODE_ENTRYPOINT;
-        this.process = spawn("claude", args, {
+        this.process = spawn(process.env.CLAUDE_BIN || "claude", args, {
           cwd: options.cwd || process.cwd(),
           env: childEnv,
           stdio: ["pipe", "pipe", "pipe"],
