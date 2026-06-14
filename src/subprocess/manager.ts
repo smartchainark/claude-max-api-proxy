@@ -36,7 +36,7 @@ export interface SubprocessEvents {
   raw: (line: string) => void;
 }
 
-const DEFAULT_TIMEOUT = 300000; // 5 minutes
+const DEFAULT_TIMEOUT = 900000; // 15 minutes — agentic tasks with multiple tool calls routinely run 8–12 min
 
 // Debug logging controlled by environment variable
 const DEBUG = process.env.DEBUG_SUBPROCESS === "true";
@@ -66,9 +66,14 @@ export class ClaudeSubprocess extends EventEmitter {
     return new Promise((resolve, reject) => {
       try {
         // Use spawn() for security - no shell interpretation
+        // Strip nested-session markers: Claude CLI refuses to start when
+        // CLAUDECODE=1 is inherited from a parent Claude Code session.
+        const childEnv = { ...process.env };
+        delete childEnv.CLAUDECODE;
+        delete childEnv.CLAUDE_CODE_ENTRYPOINT;
         this.process = spawn("claude", args, {
           cwd: options.cwd || process.cwd(),
-          env: { ...process.env },
+          env: childEnv,
           stdio: ["pipe", "pipe", "pipe"],
         });
 
