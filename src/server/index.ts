@@ -21,8 +21,26 @@ let serverInstance: Server | null = null;
 function createApp(): Express {
   const app = express();
 
-  // Middleware
-  app.use(express.json({ limit: "10mb" }));
+  // Middleware: raw body parser + manual JSON parse for better error diagnostics on malformed requests
+  app.use(express.raw({ type: "application/json", limit: "10mb" }));
+  app.use((req: Request, _res: Response, next: NextFunction) => {
+    if (req.body && Buffer.isBuffer(req.body) && req.body.length > 0) {
+      const raw = req.body.toString("utf8");
+      try {
+        req.body = JSON.parse(raw);
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        console.error("[Body parse error]:", msg);
+        console.error("[Body metadata]:", {
+          length: raw.length,
+          method: req.method,
+          url: req.originalUrl,
+        });
+        return next(err);
+      }
+    }
+    next();
+  });
 
   // Request logging (debug mode)
   app.use((req: Request, _res: Response, next: NextFunction) => {
